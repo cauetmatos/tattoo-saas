@@ -60,7 +60,7 @@ export default function AdminAgendamentos() {
   return (
     <div className="p-6 md:p-10 bg-zinc-950 min-h-screen text-white">
       <h1 className="text-2xl font-bold mb-6">Próximos Agendamentos</h1>
-      
+
       <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden shadow-xl">
         <table className="w-full text-left border-collapse">
           <thead className="bg-zinc-800/50 border-b border-zinc-800">
@@ -72,42 +72,24 @@ export default function AdminAgendamentos() {
               <th className="p-4 text-zinc-400 text-xs uppercase font-black">Ações</th>
             </tr>
           </thead>
-          
-          <tbody className="divide-y divide-zinc-800">
-            {agendamentos.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-10 text-center text-zinc-500">Nenhum agendamento encontrado.</td>
+
+          <tbody>
+            {agendamentos.map((item) => (
+              <tr key={item.id} className="border-b">               
+                <td className="p-4">{new Date(item.appointment_date).toLocaleString('pt-BR')}</td>
+                <td className="p-4">{item.customer_name}</td>
+                <td className="p-4 text-gray-400">{item.services?.name}</td>
+                <td className="p-4">{item.customer_phone}</td>
+                <td className="p-4 text-center">
+                  <button
+                    onClick={() => cancelarAgendamento(item.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold transition-all"
+                  >
+                    EXCLUIR
+                  </button>
+                </td>
               </tr>
-            ) : (
-              agendamentos.map((item) => (
-                <tr key={item.id} className="hover:bg-zinc-800/30 transition-colors">
-                  <td className="p-4 text-sm">
-                    {new Date(item.appointment_date).toLocaleString('pt-BR')}
-                  </td>
-                  <td className="p-4 font-medium">{item.customer_name}</td>
-                  <td className="p-4 text-zinc-400">
-                    {item.services?.name || 'Serviço padrão'}
-                  </td>
-                  <td className="p-4">
-                    <a 
-                      href={`https://wa.me/${item.customer_phone}`} 
-                      target="_blank" 
-                      className="text-orange-500 hover:text-orange-400 transition-colors"
-                    >
-                      {item.customer_phone}
-                    </a>
-                  </td>
-                  <td className="p-4">
-                    <button 
-                      onClick={() => cancelarAgendamento(item.id)}
-                      className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-3 py-1 rounded-lg text-xs font-bold transition-all border border-red-500/20"
-                    >
-                      EXCLUIR
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
