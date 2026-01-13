@@ -1,163 +1,136 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { Calendar, User, Phone, Scissors, CheckCircle2, Loader2 } from 'lucide-react'
 
-// 1. Definição da Estrutura de Serviços Categorizada
-const CATEGORIAS_SERVICOS = [
-  {
-    titulo: "Por Tamanho",
-    itens: [
-      { id: "2b3de021-42fe-485e-8b0b-052103a4654f", nome: "Tatuagem Pequena (até 5cm)", preco: 200 },
-      { id: "4c4bc0cd-64f1-4367-9cb1-b3001f6f4310", nome: "Tatuagem Média (até 15cm)", preco: 600 },
-      { id: "e7e666af-3019-4975-8ef3-3d8e76f8f341", nome: "Tatuagem Grande (+15cm)", preco: 1200 },
-      { id: "17c20029-66f8-422e-a905-7e4a756a3170", nome: "Fechamento Completo", preco: 3000 },
-    ]
-  },
-  {
-    titulo: "Por Tempo",
-    itens: [
-      { id: "499b9ce4-0f9f-4f01-b78d-7adb49c86c91", nome: "Valor por Hora", preco: 250 },
-      { id: "41a20001-0ebd-43d4-a774-96ad6245340d", nome: "Sessão Mínima", preco: 150 },
-      { id: "4459482f-1e21-4744-a2e2-2e68f2ccf2bf", nome: "Diária (Full Day)", preco: 1800 },
-    ]
-  },
-  {
-    titulo: "Adicionais e Especiais",
-    itens: [
-      { id: "8d96b762-c204-4dac-a930-26b9963326b7", nome: "Retoque", preco: 100 },
-      { id: "78431516-352f-4c41-8a09-cc6cb9355c0c", nome: "Cover-up (Cobertura)", preco: 500 },
-      { id: "3d12d2dc-f87c-4208-a8f3-c1d5f5358ba6", nome: "Reforma de Tatuagem", preco: 350 },
-      { id: "5c40784f-6cd2-42fb-b0fa-f2ba5525923e", nome: "Arte Personalizada", preco: 150 },
-      { id: "8b6034fd-7240-4416-bad0-4f7c34bef655", nome: "Piercing (Aplicação + Joia)", preco: 120 },
-    ]
-  }
-]
-
-export default function AgendamentoPublico() {
-  const params = useParams()
-  const router = useRouter()
-  const slug = params?.slug as string
-
-  const [studio, setStudio] = useState<any>(null)
+export default function PaginaAgendamentoCliente({ params }: { params: { slug: string } }) {
+  const [servicos, setServicos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  
+  const [sucesso, setSucesso] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+
   // Estados do Formulário
   const [nome, setNome] = useState('')
-  const [phone, setPhone] = useState('')
-  const [servicoId, setServicoId] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [servicoSelecionado, setServicoSelecionado] = useState('')
   const [dataHora, setDataHora] = useState('')
 
   useEffect(() => {
-    async function carregarDados() {
-      if (!slug) return
-      const { data } = await supabase.from('studios').select('*').eq('slug', slug).single()
-      if (data) setStudio(data)
+    async function carregarDadosEstudio() {
+      // 1. Buscamos o estúdio pelo slug (cadu-tattoo)
+      const { data: estudio } = await supabase
+        .from('studios')
+        .select('id')
+        .eq('slug', params.slug)
+        .single()
+
+      if (estudio) {
+        // 2. Buscamos os serviços deste estúdio
+        const { data: servs } = await supabase
+          .from('services')
+          .select('*')
+          .eq('studio_id', estudio.id)
+          .order('price', { ascending: true })
+        
+        setServicos(servs || [])
+      }
       setLoading(false)
     }
-    carregarDados()
-  }, [slug])
+    carregarDadosEstudio()
+  }, [params.slug])
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleAgendar(e: React.FormEvent) {
     e.preventDefault()
-    
-    // Inserção com nomes de colunas corrigidos para o Supabase
+    setEnviando(true)
+
     const { error } = await supabase.from('appointments').insert([{
-      studio_id: studio.id,
-      customer_name: nome,      
-      customer_phone: phone,    
-      service_id: servicoId,    
-      appointment_date: dataHora 
+      customer_name: nome,
+      customer_phone: whatsapp.replace(/\D/g, ''), // Limpa o telefone
+      service_id: servicoSelecionado,
+      appointment_date: dataHora,
+      studio_id: '6ce31667-7ee3-4a77-b155-b92d7ca668d2' // Seu ID fixo por enquanto
     }])
 
-    if (!error) {
-      router.push(`/agendar/${slug}/sucesso`)
-    } else {
-      alert("Erro ao realizar agendamento: " + error.message)
-    }
+    if (!error) setSucesso(true)
+    setEnviando(false)
   }
 
-  if (loading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Carregando estúdio...</div>
-  if (!studio) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Estúdio não encontrado.</div>
+  if (loading) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Carregando estúdio...</div>
+
+  if (servicos.length === 0 && !loading) {
+    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Estúdio não encontrado ou sem serviços ativos.</div>
+  }
+
+  if (sucesso) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
+        <CheckCircle2 size={80} className="text-green-500 mb-6 animate-bounce" />
+        <h1 className="text-3xl font-black text-white mb-2">AGENDADO COM SUCESSO!</h1>
+        <p className="text-zinc-400 mb-8">Cadu recebeu seu pedido e entrará em contato em breve.</p>
+        <button onClick={() => window.location.reload()} className="text-orange-500 font-bold underline">Fazer outro agendamento</button>
+      </div>
+    )
+  }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center p-4 md:p-10">
-      <div className="w-full max-w-lg bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl">
-        
-        {/* Header do Estúdio */}
-        <div className="bg-black p-8 text-center border-b-4 border-orange-500">
-          <h1 className="text-3xl font-black uppercase tracking-tighter">{studio.name}</h1>
-          <p className="text-orange-500 italic font-bold text-sm">RESERVE SEU HORÁRIO</p>
-        </div>
+    <div className="min-h-screen bg-zinc-950 text-white font-sans p-6 md:p-12">
+      <div className="max-w-xl mx-auto">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl font-black tracking-tighter uppercase text-orange-500">Agende sua Tattoo</h1>
+          <p className="text-zinc-500 mt-2 font-medium">Escolha o serviço e o melhor horário para você.</p>
+        </header>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+        <form onSubmit={handleAgendar} className="space-y-6">
           {/* Nome */}
-          <div>
-            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Seu Nome Completo</label>
-            <input 
-              required
-              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none"
-              placeholder="Ex: Maria Souza"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-            />
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase text-zinc-500 ml-2">Seu Nome</label>
+            <div className="relative">
+              <User className="absolute left-4 top-4 text-zinc-600" size={20} />
+              <input required className="w-full bg-zinc-900 border border-zinc-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500" placeholder="Ex: Maria Oliveira" value={nome} onChange={e => setNome(e.target.value)} />
+            </div>
           </div>
 
           {/* WhatsApp */}
-          <div>
-            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">WhatsApp (Com DDD)</label>
-            <input 
-              required
-              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none"
-              placeholder="Ex: 13991671641"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase text-zinc-500 ml-2">WhatsApp</label>
+            <div className="relative">
+              <Phone className="absolute left-4 top-4 text-zinc-600" size={20} />
+              <input required type="tel" className="w-full bg-zinc-900 border border-zinc-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500" placeholder="(13) 99999-9999" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
+            </div>
           </div>
 
-          {/* Seleção de Serviço Categorizada */}
-          <div>
-            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Escolha o Serviço</label>
-            <select 
-              required
-              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none appearance-none"
-              value={servicoId}
-              onChange={(e) => setServicoId(e.target.value)}
-            >
-              <option value="">Selecione um serviço...</option>
-              {CATEGORIAS_SERVICOS.map((cat) => (
-                <optgroup key={cat.titulo} label={cat.titulo} className="bg-zinc-900 text-orange-500">
-                  {cat.itens.map((item) => (
-                    <option key={item.id} value={item.id} className="text-white">
-                      {item.nome} — R$ {item.preco}
-                    </option>
-                  ))}
-                </optgroup>
+          {/* Seleção de Serviço Dinâmica */}
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase text-zinc-500 ml-2">Escolha o Serviço</label>
+            <div className="grid gap-3">
+              {servicos.map(s => (
+                <label key={s.id} className={`flex justify-between items-center p-4 rounded-2xl border cursor-pointer transition-all ${servicoSelecionado === s.id ? 'border-orange-500 bg-orange-500/10' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}>
+                  <div className="flex items-center gap-3">
+                    <input type="radio" name="servico" required className="hidden" onChange={() => setServicoSelecionado(s.id)} />
+                    <Scissors size={18} className={servicoSelecionado === s.id ? 'text-orange-500' : 'text-zinc-600'} />
+                    <span className="font-bold">{s.name}</span>
+                  </div>
+                  <span className="text-orange-500 font-black">R$ {s.price}</span>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
 
-          {/* Data e Horário */}
-          <div>
-            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Data e Horário</label>
-            <input 
-              required
-              type="datetime-local"
-              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none"
-              value={dataHora}
-              onChange={(e) => setDataHora(e.target.value)}
-            />
+          {/* Data e Hora */}
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase text-zinc-500 ml-2">Data e Horário</label>
+            <div className="relative">
+              <Calendar className="absolute left-4 top-4 text-zinc-600" size={20} />
+              <input required type="datetime-local" className="w-full bg-zinc-900 border border-zinc-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500 text-white" value={dataHora} onChange={e => setDataHora(e.target.value)} />
+            </div>
           </div>
 
-          <button 
-            type="submit"
-            className="w-full py-5 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase rounded-2xl transition-all shadow-lg shadow-orange-900/20"
-          >
-            Finalizar Agendamento
+          <button disabled={enviando} className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-5 rounded-3xl transition-all shadow-xl shadow-orange-900/20 flex items-center justify-center gap-3 uppercase tracking-widest">
+            {enviando ? <Loader2 className="animate-spin" /> : "FINALIZAR AGENDAMENTO"}
           </button>
         </form>
       </div>
-    </main>
+    </div>
   )
 }
