@@ -1,17 +1,49 @@
 "use client"
+
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-export default function AgendamentoPublico() {
-  const { slug } = useParams()
-  const router = useRouter()
-  
-  const [studio, setStudio] = useState<any>(null)
-  const [servicos, setServicos] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+// 1. Definição da Estrutura de Serviços Categorizada
+const CATEGORIAS_SERVICOS = [
+  {
+    titulo: "Por Tamanho",
+    itens: [
+      { id: "tam_p", nome: "Tatuagem Pequena (até 5cm)", preco: 200 },
+      { id: "tam_m", nome: "Tatuagem Média (até 15cm)", preco: 600 },
+      { id: "tam_g", nome: "Tatuagem Grande (+15cm)", preco: 1200 },
+      { id: "tam_f", nome: "Fechamento Completo", preco: 3000 },
+    ]
+  },
+  {
+    titulo: "Por Tempo",
+    itens: [
+      { id: "time_h", nome: "Valor por Hora", preco: 250 },
+      { id: "time_m", nome: "Sessão Mínima", preco: 150 },
+      { id: "time_d", nome: "Diária (Full Day)", preco: 1800 },
+    ]
+  },
+  {
+    titulo: "Adicionais e Especiais",
+    itens: [
+      { id: "add_ret", nome: "Retoque", preco: 100 },
+      { id: "add_cov", nome: "Cover-up (Cobertura)", preco: 500 },
+      { id: "add_ref", nome: "Reforma de Tatuagem", preco: 350 },
+      { id: "add_art", nome: "Arte Personalizada", preco: 150 },
+      { id: "add_prc", nome: "Piercing (Aplicação + Joia)", preco: 120 },
+    ]
+  }
+]
 
-  // Estados do formulário de agendamento
+export default function AgendamentoPublico() {
+  const params = useParams()
+  const router = useRouter()
+  const slug = params?.slug as string
+
+  const [studio, setStudio] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  
+  // Estados do Formulário
   const [nome, setNome] = useState('')
   const [phone, setPhone] = useState('')
   const [servicoId, setServicoId] = useState('')
@@ -19,22 +51,9 @@ export default function AgendamentoPublico() {
 
   useEffect(() => {
     async function carregarDados() {
-      // 1. Busca os dados do estúdio pelo slug da URL (ex: cadu-tatto)
-      const { data: studioData } = await supabase
-        .from('studios')
-        .select('*')
-        .eq('slug', slug)
-        .single()
-
-      if (studioData) {
-        setStudio(studioData)
-        // 2. Busca os serviços cadastrados para este estúdio
-        const { data: servicesData } = await supabase
-          .from('services')
-          .select('*')
-          .eq('studio_id', studioData.id)
-        setServicos(servicesData || [])
-      }
+      if (!slug) return
+      const { data } = await supabase.from('studios').select('*').eq('slug', slug).single()
+      if (data) setStudio(data)
       setLoading(false)
     }
     carregarDados()
@@ -43,78 +62,102 @@ export default function AgendamentoPublico() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     
-    // 3. Salva o agendamento na tabela 'appointments' do Supabase
-   const { error } = await supabase.from('appointments').insert([{
-    studio_id: studio.id,
-    service_id: servicoId,
-    customer_name: nome,      // Ajustado de client_name
-    customer_phone: phone,    // Ajustado de client_phone
-    appointment_date: dataHora // Ajustado de date
-  }])
+    // Inserção com nomes de colunas corrigidos para o Supabase
+    const { error } = await supabase.from('appointments').insert([{
+      studio_id: studio.id,
+      customer_name: nome,      
+      customer_phone: phone,    
+      service_id: servicoId,    
+      appointment_date: dataHora 
+    }])
 
-  if (!error) {
-    router.push(`/agendar/${slug}/sucesso`)
-  } else {
-    alert("Erro ao realizar agendamento: " + error.message)
+    if (!error) {
+      router.push(`/agendar/${slug}/sucesso`)
+    } else {
+      alert("Erro ao realizar agendamento: " + error.message)
+    }
   }
-}
 
-  if (loading) return <div className="p-10 text-center font-bold">Carregando estúdio...</div>
-  if (!studio) return <div className="p-10 text-center font-bold">Estúdio não encontrado.</div>
+  if (loading) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Carregando estúdio...</div>
+  if (!studio) return <div className="min-h-screen bg-black text-white flex items-center justify-center">Estúdio não encontrado.</div>
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-6 font-sans text-black">
-      <div className="max-w-md mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100">
-        <div className="bg-black p-10 text-center text-white">
-          <h1 className="text-2xl font-black uppercase tracking-widest">{studio.name}</h1>
-          <p className="text-orange-500 font-bold mt-2 text-sm uppercase italic">Reserve seu horário</p>
+    <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center p-4 md:p-10">
+      <div className="w-full max-w-lg bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 shadow-2xl">
+        
+        {/* Header do Estúdio */}
+        <div className="bg-black p-8 text-center border-b-4 border-orange-500">
+          <h1 className="text-3xl font-black uppercase tracking-tighter">{studio.name}</h1>
+          <p className="text-orange-500 italic font-bold text-sm">RESERVE SEU HORÁRIO</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          {/* Nome */}
           <div>
-            <label className="block text-xs font-black uppercase text-gray-400 mb-2">Seu Nome Completo</label>
+            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Seu Nome Completo</label>
             <input 
-              className="w-full border-2 border-gray-100 p-4 rounded-2xl bg-gray-50 focus:border-orange-500 outline-none transition-all" 
-              value={nome} onChange={e => setNome(e.target.value)} required 
+              required
+              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none"
+              placeholder="Ex: Maria Souza"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
             />
           </div>
 
+          {/* WhatsApp */}
           <div>
-            <label className="block text-xs font-black uppercase text-gray-400 mb-2">WhatsApp (com DDD)</label>
+            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">WhatsApp (Com DDD)</label>
             <input 
-              className="w-full border-2 border-gray-100 p-4 rounded-2xl bg-gray-50 focus:border-orange-500 outline-none transition-all" 
+              required
+              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none"
               placeholder="Ex: 13991671641"
-              value={phone} onChange={e => setPhone(e.target.value)} required 
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
 
+          {/* Seleção de Serviço Categorizada */}
           <div>
-            <label className="block text-xs font-black uppercase text-gray-400 mb-2">Escolha a Tattoo</label>
+            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Escolha o Serviço</label>
             <select 
-              className="w-full border-2 border-gray-100 p-4 rounded-2xl bg-gray-50 focus:border-orange-500 outline-none transition-all"
-              value={servicoId} onChange={e => setServicoId(e.target.value)} required
+              required
+              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none appearance-none"
+              value={servicoId}
+              onChange={(e) => setServicoId(e.target.value)}
             >
               <option value="">Selecione um serviço...</option>
-              {servicos.map(s => (
-                <option key={s.id} value={s.id}>{s.name} — R$ {s.price}</option>
+              {CATEGORIAS_SERVICOS.map((cat) => (
+                <optgroup key={cat.titulo} label={cat.titulo} className="bg-zinc-900 text-orange-500">
+                  {cat.itens.map((item) => (
+                    <option key={item.id} value={item.id} className="text-white">
+                      {item.nome} — R$ {item.preco}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
 
+          {/* Data e Horário */}
           <div>
-            <label className="block text-xs font-black uppercase text-gray-400 mb-2">Data e Horário</label>
+            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Data e Horário</label>
             <input 
-              type="datetime-local" 
-              className="w-full border-2 border-gray-100 p-4 rounded-2xl bg-gray-50 focus:border-orange-500 outline-none transition-all" 
-              value={dataHora} onChange={e => setDataHora(e.target.value)} required 
+              required
+              type="datetime-local"
+              className="w-full p-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-orange-500 transition-all outline-none"
+              value={dataHora}
+              onChange={(e) => setDataHora(e.target.value)}
             />
           </div>
 
-          <button className="w-full bg-orange-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-orange-100 hover:scale-[1.02] active:scale-95 transition-all">
-            FINALIZAR AGENDAMENTO
+          <button 
+            type="submit"
+            className="w-full py-5 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase rounded-2xl transition-all shadow-lg shadow-orange-900/20"
+          >
+            Finalizar Agendamento
           </button>
         </form>
       </div>
-    </div>
+    </main>
   )
 }
