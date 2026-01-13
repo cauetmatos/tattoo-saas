@@ -72,7 +72,6 @@ export default function AdminAgendamentos() {
               <th className="p-4 text-zinc-400 text-xs uppercase font-black">Ações</th>
             </tr>
           </thead>
-
           <tbody>
             {agendamentos.map((item) => (
               <tr key={item.id} className="border-b">               
