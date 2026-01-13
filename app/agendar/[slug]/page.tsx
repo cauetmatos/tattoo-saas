@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useParams } from 'next/navigation' // Hook oficial para pegar o slug
 import { Calendar, User, Phone, Scissors, CheckCircle2, Loader2 } from 'lucide-react'
 
-export default function PaginaAgendamentoCliente({ params }: { params: { slug: string } }) {
+export default function PaginaAgendamentoCliente() {
+  const params = useParams() // Captura o [slug] da URL de forma segura
+  const slug = params?.slug as string
+
   const [servicos, setServicos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [sucesso, setSucesso] = useState(false)
   const [enviando, setEnviando] = useState(false)
-  const [estudioId, setEstudioId] = useState('') // Guardaremos o ID real aqui
+  const [estudioId, setEstudioId] = useState('')
 
   const [nome, setNome] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
@@ -18,42 +22,31 @@ export default function PaginaAgendamentoCliente({ params }: { params: { slug: s
 
   useEffect(() => {
     async function carregarPagina() {
-      console.log("Iniciando busca para o slug:", params.slug);
+      if (!slug) return
 
-      // 1. Busca o estúdio pelo slug da URL
-      const { data: estudio, error: erroEstudio } = await supabase
+      // 1. Busca o estúdio pelo slug (cadu-tattoo)
+      const { data: estudio } = await supabase
         .from('studios')
-        .select('id, name')
-        .eq('slug', params.slug)
+        .select('id')
+        .eq('slug', slug)
         .single()
 
-      if (erroEstudio || !estudio) {
-        console.error("Estúdio não encontrado no banco:", erroEstudio);
-        setLoading(false);
-        return;
+      if (estudio) {
+        setEstudioId(estudio.id)
+        
+        // 2. Busca os 32 serviços vinculados ao ID do estúdio
+        const { data: servs } = await supabase
+          .from('services')
+          .select('*')
+          .eq('studio_id', estudio.id)
+          .order('name', { ascending: true })
+        
+        setServicos(servs || [])
       }
-
-      setEstudioId(estudio.id);
-      console.log("Estúdio encontrado! ID:", estudio.id);
-
-      // 2. Busca serviços usando o ID que acabamos de achar
-      const { data: servs, error: erroServs } = await supabase
-        .from('services')
-        .select('*')
-        .eq('studio_id', estudio.id) // Nome da coluna com underscore
-        .order('price', { ascending: true })
-
-      if (erroServs) {
-        console.error("Erro ao buscar serviços:", erroServs);
-      } else {
-        console.log("Serviços carregados:", servs?.length);
-        setServicos(servs || []);
-      }
-      
       setLoading(false)
     }
     carregarPagina()
-  }, [params.slug])
+  }, [slug])
 
   async function handleAgendar(e: React.FormEvent) {
     e.preventDefault()
