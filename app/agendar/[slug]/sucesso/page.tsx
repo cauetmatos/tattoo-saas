@@ -9,9 +9,11 @@ import { useRouter } from 'next/navigation'
 export default function PaginaSucesso({ params }: { params: { slug: string } }) {
   const [estudio, setEstudio] = useState<any>(null)
 
+  const router = useRouter();
+
   useEffect(() => {
     async function carregarEstudio() {
-      // Busca os dados do estúdio (incluindo o novo campo whatsapp)
+      
       const { data } = await supabase
         .from('studios')
         .select('*')
@@ -25,7 +27,7 @@ export default function PaginaSucesso({ params }: { params: { slug: string } }) 
 
   if (!estudio) return <div className="p-10 text-center">Carregando...</div>
 
-  // Gera o link para o WhatsApp com uma mensagem pré-definida
+  
   const mensagem = `Olá! Acabei de realizar um agendamento no ${estudio.name}.`
   const linkWhats = `https://wa.me/${estudio.whatsapp}?text=${encodeURIComponent(mensagem)}`
 

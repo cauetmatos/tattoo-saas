@@ -11,7 +11,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Autenticação usando o Supabase Auth
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -20,7 +20,7 @@ export default function LoginPage() {
     if (error) {
       alert("Erro ao entrar: " + error.message)
     } else {
-      // Se der certo, envia para o Dashboard de agendamentos
+      
       router.push('/admin/agendamentos')
     }
   }

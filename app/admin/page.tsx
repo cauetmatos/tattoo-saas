@@ -6,9 +6,9 @@ export default function ServicosAdmin() {
   const [servicos, setServicos] = useState<any[]>([])
   const [nome, setNome] = useState('')
   const [preco, setPreco] = useState('')
-  const [editandoId, setEditandoId] = useState<string | null>(null) // Controla se estamos editando
+  const [editandoId, setEditandoId] = useState<string | null>(null) // 
   
-  const STUDIO_ID = '6ce31667-7ee3-4a77-b155-b92d7ce69994' // Seu ID fixo
+  const STUDIO_ID = '6ce31667-7ee3-4a77-b155-b92d7ce69994' //  ID fix
 
   async function carregarServicos() {
     const { data } = await supabase
@@ -20,7 +20,7 @@ export default function ServicosAdmin() {
 
   useEffect(() => { carregarServicos() }, [])
 
-  // Preenche o formulário para edição
+  
   function prepararEdicao(servico: any) {
     setEditandoId(servico.id)
     setNome(servico.name)
@@ -31,7 +31,7 @@ export default function ServicosAdmin() {
     e.preventDefault()
     
     if (editandoId) {
-      // Lógica de UPDATE (Editar)
+
       const { error } = await supabase
         .from('services')
         .update({ name: nome, price: parseFloat(preco) })
@@ -42,7 +42,7 @@ export default function ServicosAdmin() {
         alert("Serviço atualizado!")
       }
     } else {
-      // Lógica de INSERT (Novo)
+      
       const { error } = await supabase.from('services').insert([
         { name: nome, price: parseFloat(preco), studio_id: STUDIO_ID }
       ])
