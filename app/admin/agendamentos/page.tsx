@@ -10,7 +10,7 @@ export default function AgendamentosAdmin() {
     async function load() {
       const { data } = await supabase
         .from('appointments')
-        .select('*, services(name)') // Traz o nome do serviço via relação
+        .select('*, services(name)') 
         .eq('studio_id', STUDIO_ID)
         .order('date', { ascending: true })
       setAgendamentos(data || [])
