@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 export default function AgendamentosAdmin() {
   const [agendamentos, setAgendamentos] = useState<any[]>([])
   const STUDIO_ID = '6ce31667-7ee3-4a77-b155-b92d7ce69994'
