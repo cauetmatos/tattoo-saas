@@ -2,68 +2,48 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
-export default function DashboardAgendamentos() {
+export default function AgendamentosAdmin() {
   const [agendamentos, setAgendamentos] = useState<any[]>([])
-
-  // Use o ID do seu estúdio que já temos no banco
   const STUDIO_ID = '6ce31667-7ee3-4a77-b155-b92d7ce69994'
 
   useEffect(() => {
-    async function buscarAgendamentos() {
+    async function load() {
       const { data } = await supabase
         .from('appointments')
-        .select(`
-          id,
-          customer_name,
-          customer_phone,
-          appointment_date,
-          services (name)
-        `)
+        .select('*, services(name)') // Traz o nome do serviço via relação
         .eq('studio_id', STUDIO_ID)
-        .order('appointment_date', { ascending: true })
-
+        .order('date', { ascending: true })
       setAgendamentos(data || [])
     }
-    buscarAgendamentos()
+    load()
   }, [])
 
   return (
-    <div className="p-10 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8">Próximos Agendamentos</h1>
-      
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Próximos Agendamentos</h1>
+      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-gray-100 border-b">
+          <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-4">Cliente</th>
-              <th className="p-4">Serviço</th>
-              <th className="p-4">Data/Hora</th>
-              <th className="p-4">WhatsApp</th>
+              <th className="p-4 font-bold text-gray-600">Data/Hora</th>
+              <th className="p-4 font-bold text-gray-600">Cliente</th>
+              <th className="p-4 font-bold text-gray-600">Serviço</th>
+              <th className="p-4 font-bold text-gray-600">WhatsApp</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
-            {agendamentos.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="p-4 font-medium">{item.customer_name}</td>
-                <td className="p-4">{item.services?.name}</td>
-                <td className="p-4">{new Date(item.appointment_date).toLocaleString('pt-BR')}</td>
-                <td className="p-4">
-                  <a 
-                    href={`https://wa.me/${item.customer_phone}`} 
-                    target="_blank" 
-                    className="text-green-600 font-bold"
-                  >
-                    Conversar
-                  </a>
+          <tbody>
+            {agendamentos.map(ag => (
+              <tr key={ag.id} className="border-b hover:bg-gray-50">
+                <td className="p-4">{new Date(ag.date).toLocaleString('pt-BR')}</td>
+                <td className="p-4 font-medium">{ag.client_name}</td>
+                <td className="p-4">{ag.services?.name}</td>
+                <td className="p-4 text-blue-600 underline">
+                  <a href={`https://wa.me/${ag.client_phone}`} target="_blank">Conversar</a>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        
-        {agendamentos.length === 0 && (
-          <p className="p-10 text-center text-gray-500">Nenhum agendamento encontrado.</p>
-        )}
       </div>
     </div>
   )
