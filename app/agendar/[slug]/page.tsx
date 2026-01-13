@@ -44,21 +44,20 @@ export default function AgendamentoPublico() {
     e.preventDefault()
     
     // 3. Salva o agendamento na tabela 'appointments' do Supabase
-    const { error } = await supabase.from('appointments').insert([{
-      studio_id: studio.id,
-      client_name: nome,
-      client_phone: phone,
-      service_id: servicoId,
-      date: dataHora
-    }])
+   const { error } = await supabase.from('appointments').insert([{
+    studio_id: studio.id,
+    service_id: servicoId,
+    customer_name: nome,      // Ajustado de client_name
+    customer_phone: phone,    // Ajustado de client_phone
+    appointment_date: dataHora // Ajustado de date
+  }])
 
-    if (!error) {
-      // 4. Redireciona para a página de sucesso que você já criou
-      router.push(`/agendar/${slug}/sucesso`)
-    } else {
-      alert("Erro ao realizar agendamento: " + error.message)
-    }
+  if (!error) {
+    router.push(`/agendar/${slug}/sucesso`)
+  } else {
+    alert("Erro ao realizar agendamento: " + error.message)
   }
+}
 
   if (loading) return <div className="p-10 text-center font-bold">Carregando estúdio...</div>
   if (!studio) return <div className="p-10 text-center font-bold">Estúdio não encontrado.</div>
