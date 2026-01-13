@@ -4,20 +4,34 @@ import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
-export default function AgendamentosAdmin() {
+export default function AdminAgendamentos() {
   const [agendamentos, setAgendamentos] = useState<any[]>([])
-  const STUDIO_ID = '6ce31667-7ee3-4a77-b155-b92d7ce69994'
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from('appointments')
-        .select('*, services(name)') 
-        .eq('studio_id', STUDIO_ID)
-        .order('date', { ascending: true })
-      setAgendamentos(data || [])
+    async function buscarAgendamentos() {
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select(`
+            id,
+            customer_name,
+            customer_phone,
+            appointment_date,
+            services ( name ) 
+          `) // Esse 'services ( name )' é o Join que busca o nome do serviço pelo ID
+          .order('appointment_date', { ascending: true })
+
+        if (error) throw error
+        setAgendamentos(data || [])
+      } catch (error) {
+        console.error('Erro ao carregar agendamentos:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-    load()
+
+    buscarAgendamentos()
   }, [])
 
   return (
@@ -34,16 +48,28 @@ export default function AgendamentosAdmin() {
             </tr>
           </thead>
           <tbody>
-            {agendamentos.map(ag => (
-              <tr key={ag.id} className="border-b hover:bg-gray-50">
-                <td className="p-4">{new Date(ag.date).toLocaleString('pt-BR')}</td>
-                <td className="p-4 font-medium">{ag.client_name}</td>
-                <td className="p-4">{ag.services?.name}</td>
-                <td className="p-4 text-blue-600 underline">
-                  <a href={`https://wa.me/${ag.client_phone}`} target="_blank">Conversar</a>
-                </td>
-              </tr>
-            ))}
+           {agendamentos.map((agendamento) => (
+    <tr key={agendamento.id} className="border-b border-zinc-800 hover:bg-zinc-900/50 transition-colors">
+      <td className="p-4 text-sm">
+        {/* Converte a data do banco para o formato brasileiro */}
+        {new Date(agendamento.appointment_date).toLocaleString('pt-BR')}
+      </td>
+      <td className="p-4 font-medium">{agendamento.customer_name}</td>
+      <td className="p-4 text-zinc-400">
+        {/* Acessa o nome do serviço vindo do Join */}
+        {agendamento.services?.name || 'Serviço não encontrado'}
+      </td>
+      <td className="p-4">
+        <a 
+          href={`https://wa.me/${agendamento.customer_phone}`} 
+          target="_blank" 
+          className="text-orange-500 hover:underline"
+        >
+          {agendamento.customer_phone}
+        </a>
+      </td>
+    </tr>
+  ))}
           </tbody>
         </table>
       </div>
