@@ -9,28 +9,28 @@ const CATEGORIAS_SERVICOS = [
   {
     titulo: "Por Tamanho",
     itens: [
-      { id: "tam_p", nome: "Tatuagem Pequena (até 5cm)", preco: 200 },
-      { id: "tam_m", nome: "Tatuagem Média (até 15cm)", preco: 600 },
-      { id: "tam_g", nome: "Tatuagem Grande (+15cm)", preco: 1200 },
-      { id: "tam_f", nome: "Fechamento Completo", preco: 3000 },
+      { id: "2b3de021-42fe-485e-8b0b-052103a4654f", nome: "Tatuagem Pequena (até 5cm)", preco: 200 },
+      { id: "4c4bc0cd-64f1-4367-9cb1-b3001f6f4310", nome: "Tatuagem Média (até 15cm)", preco: 600 },
+      { id: "e7e666af-3019-4975-8ef3-3d8e76f8f341", nome: "Tatuagem Grande (+15cm)", preco: 1200 },
+      { id: "17c20029-66f8-422e-a905-7e4a756a3170", nome: "Fechamento Completo", preco: 3000 },
     ]
   },
   {
     titulo: "Por Tempo",
     itens: [
-      { id: "time_h", nome: "Valor por Hora", preco: 250 },
-      { id: "time_m", nome: "Sessão Mínima", preco: 150 },
-      { id: "time_d", nome: "Diária (Full Day)", preco: 1800 },
+      { id: "499b9ce4-0f9f-4f01-b78d-7adb49c86c91", nome: "Valor por Hora", preco: 250 },
+      { id: "41a20001-0ebd-43d4-a774-96ad6245340d", nome: "Sessão Mínima", preco: 150 },
+      { id: "4459482f-1e21-4744-a2e2-2e68f2ccf2bf", nome: "Diária (Full Day)", preco: 1800 },
     ]
   },
   {
     titulo: "Adicionais e Especiais",
     itens: [
-      { id: "add_ret", nome: "Retoque", preco: 100 },
-      { id: "add_cov", nome: "Cover-up (Cobertura)", preco: 500 },
-      { id: "add_ref", nome: "Reforma de Tatuagem", preco: 350 },
-      { id: "add_art", nome: "Arte Personalizada", preco: 150 },
-      { id: "add_prc", nome: "Piercing (Aplicação + Joia)", preco: 120 },
+      { id: "8d96b762-c204-4dac-a930-26b9963326b7", nome: "Retoque", preco: 100 },
+      { id: "78431516-352f-4c41-8a09-cc6cb9355c0c", nome: "Cover-up (Cobertura)", preco: 500 },
+      { id: "3d12d2dc-f87c-4208-a8f3-c1d5f5358ba6", nome: "Reforma de Tatuagem", preco: 350 },
+      { id: "5c40784f-6cd2-42fb-b0fa-f2ba5525923e", nome: "Arte Personalizada", preco: 150 },
+      { id: "8b6034fd-7240-4416-bad0-4f7c34bef655", nome: "Piercing (Aplicação + Joia)", preco: 120 },
     ]
   }
 ]
