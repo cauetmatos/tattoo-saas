@@ -1,67 +1,49 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Trash2, Plus, Scissors } from 'lucide-react'
+import { TrendingUp, Users, DollarSign, CalendarCheck } from 'lucide-react'
 
-export default function ConfigurarServicos() {
-  const [servicos, setServicos] = useState<any[]>([])
-  const [novoServico, setNovoServico] = useState({ name: '', price: '' })
+export default function DashboardAdmin() {
+  const [stats, setStats] = useState({ faturamento: 0, totalAgendamentos: 0 })
 
-  // Carrega os serviços do banco
-  async function carregarServicos() {
-    const { data } = await supabase.from('services').select('*').order('price', { ascending: true })
-    if (data) setServicos(data)
-  }
-
-  useEffect(() => { carregarServicos() }, [])
+  useEffect(() => {
+    async function carregarFinancas() {
+      // Busca agendamentos trazendo o preço do serviço vinculado
+      const { data } = await supabase.from('appointments').select('services(price)')
+      if (data) {
+        const total = data.reduce((acc, curr: any) => acc + (curr.services?.price || 0), 0)
+        setStats({ faturamento: total, totalAgendamentos: data.length })
+      }
+    }
+    carregarFinancas()
+  }, [])
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10">
-      <header className="flex items-center gap-4">
-        <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500">
-          <Scissors size={32} />
-        </div>
-        <div>
-          <h1 className="text-4xl font-black text-white tracking-tight">Meus Serviços</h1>
-          <p className="text-zinc-500 font-medium">Gerencie o catálogo e os preços do seu estúdio.</p>
-        </div>
+    <div className="space-y-10">
+      <header>
+        <h1 className="text-4xl font-black text-white">Dashboard</h1>
+        <p className="text-zinc-500 font-medium">Visão geral financeira do estúdio.</p>
       </header>
 
-      {/* Seção de Adicionar Novo Serviço */}
-      <section className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-xl">
-        <div className="flex flex-col md:flex-row gap-4">
-          <input 
-            placeholder="Nome do serviço (Ex: Fineline)"
-            className="flex-1 bg-zinc-950 border border-zinc-800 p-4 rounded-2xl focus:border-orange-500 outline-none transition-all"
-            value={novoServico.name}
-            onChange={(e) => setNovoServico({...novoServico, name: e.target.value})}
-          />
-          <input 
-            placeholder="Preço (Ex: 250)"
-            type="number"
-            className="w-full md:w-32 bg-zinc-950 border border-zinc-800 p-4 rounded-2xl focus:border-orange-500 outline-none transition-all"
-            value={novoServico.price}
-            onChange={(e) => setNovoServico({...novoServico, price: e.target.value})}
-          />
-          <button className="bg-orange-600 hover:bg-orange-500 text-white font-bold px-8 py-4 rounded-2xl transition-all flex items-center justify-center gap-2">
-            <Plus size={20} /> ADICIONAR
-          </button>
-        </div>
-      </section>
-
-      {/* Listagem de Serviços */}
-      <div className="grid gap-4">
-        {servicos.map((servico) => (
-          <div key={servico.id} className="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 flex justify-between items-center group hover:border-zinc-700 transition-all shadow-lg">
-            <div>
-              <h3 className="text-white font-bold text-lg">{servico.name}</h3>
-              <p className="text-orange-500 font-black text-xl">R$ {servico.price.toLocaleString('pt-BR')}</p>
-            </div>
-            <button className="p-4 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all flex items-center gap-2 font-bold text-xs">
-              <Trash2 size={20} /> EXCLUIR
-            </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <DollarSign size={100} className="text-orange-500" />
           </div>
-        ))}
+          <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-2">Faturamento Total</p>
+          <h2 className="text-5xl font-black text-orange-500">R$ {stats.faturamento.toLocaleString('pt-BR')}</h2>
+          <div className="mt-4 flex items-center gap-2 text-green-500 text-xs font-bold">
+            <TrendingUp size={14} /> Dados sincronizados com o banco
+          </div>
+        </div>
+
+        <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 shadow-xl">
+          <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-2">Total de Agendamentos</p>
+          <h2 className="text-5xl font-black text-white">{stats.totalAgendamentos}</h2>
+          <div className="mt-4 flex items-center gap-2 text-zinc-500 text-xs">
+            <CalendarCheck size={14} /> Histórico completo de sessões
+          </div>
+        </div>
       </div>
     </div>
   )
