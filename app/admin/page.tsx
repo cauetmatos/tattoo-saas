@@ -1,12 +1,12 @@
 "use client"
 
 import Link from 'next/link'
-import { Zap, Shield, Star, ArrowRight } from 'lucide-react'
+import { Zap, Star, Shield, ArrowRight } from 'lucide-react'
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white font-sans text-zinc-900">
-      {/* Navbar */}
+      {/* Navbar com Link para seu Login de Admin */}
       <nav className="flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-1">
           <span className="text-2xl font-black tracking-tighter uppercase">Tattoo</span>
@@ -14,13 +14,13 @@ export default function LandingPage() {
         </div>
         <Link 
           href="/login" 
-          className="bg-black text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-zinc-800 transition-all"
+          className="bg-black text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-zinc-800 transition-all shadow-lg"
         >
           Acessar Painel
         </Link>
       </nav>
 
-      {/* Hero Section */}
+      {/* Seção Principal (Hero) */}
       <main className="max-w-4xl mx-auto text-center pt-20 pb-32 px-6">
         <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8">
           Sua agenda no <br />
@@ -32,12 +32,15 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          {/* BOTÃO DO CLIENTE: Vai para a página de agendamento do Cadu */}
           <Link 
             href="/agendar/cadu-tattoo" 
-            className="w-full md:w-auto bg-orange-600 hover:bg-orange-500 text-white font-black px-10 py-5 rounded-2xl transition-all shadow-xl shadow-orange-200 text-lg"
+            className="w-full md:w-auto bg-orange-600 hover:bg-orange-500 text-white font-black px-10 py-5 rounded-2xl transition-all shadow-xl shadow-orange-200 text-lg flex items-center justify-center gap-2"
           >
-            Ver Demo do Cadu
+            Ver Demo do Cadu <ArrowRight size={20} />
           </Link>
+
+          {/* BOTÃO DE INTERESSE: Também pode levar ao login ou cadastro */}
           <Link 
             href="/login" 
             className="w-full md:w-auto bg-white border-2 border-zinc-900 text-black font-black px-10 py-5 rounded-2xl hover:bg-zinc-50 transition-all text-lg"
@@ -47,25 +50,25 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* Features Section (A parte preta inferior) */}
-      <section className="bg-black text-white py-24 rounded-t-[60px]">
+      {/* Seção de Benefícios (Rodapé Preto) */}
+      <section className="bg-black text-white py-24 rounded-t-[60px] shadow-[0_-20px_50px_rgba(0,0,0,0.2)]">
         <div className="max-w-6xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-16">
           <div className="text-center space-y-4">
             <div className="flex justify-center text-orange-500"><Zap size={40} fill="currentColor" /></div>
-            <h3 className="text-xl font-black uppercase italic tracking-tighter">Agilidade</h3>
-            <p className="text-zinc-500 text-sm font-medium">O cliente agenda em menos de 30 segundos.</p>
+            <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Agilidade</h3>
+            <p className="text-zinc-500 text-sm font-medium">O cliente agenda em menos de 30 segundos sem precisar baixar nada.</p>
           </div>
 
           <div className="text-center space-y-4">
             <div className="flex justify-center text-orange-500"><Star size={40} fill="currentColor" /></div>
-            <h3 className="text-xl font-black uppercase italic tracking-tighter">Profissionalismo</h3>
-            <p className="text-zinc-500 text-sm font-medium">Mostre seus preços de forma clara.</p>
+            <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Profissionalismo</h3>
+            <p className="text-zinc-500 text-sm font-medium">Apresente seus serviços e preços de forma clara e profissional.</p>
           </div>
 
           <div className="text-center space-y-4">
             <div className="flex justify-center text-orange-500"><Shield size={40} fill="currentColor" /></div>
-            <h3 className="text-xl font-black uppercase italic tracking-tighter">Segurança</h3>
-            <p className="text-zinc-500 text-sm font-medium">Painel exclusivo com login seguro.</p>
+            <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Segurança</h3>
+            <p className="text-zinc-500 text-sm font-medium">Painel exclusivo protegido por login para você gerenciar seus ganhos.</p>
           </div>
         </div>
       </section>
