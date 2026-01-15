@@ -1,73 +1,77 @@
 "use client"
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
-import { Lock, Mail, Loader2 } from 'lucide-react'
 
-export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+import Link from 'next/link'
+import { Zap, Star, Shield, ArrowRight } from 'lucide-react'
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      alert("Erro ao entrar: " + error.message)
-    } else {
-      router.push('/admin') // Redireciona para o dashboard após o login
-    }
-    setLoading(false)
-  }
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-zinc-900 p-8 rounded-3xl border border-zinc-800 shadow-2xl">
-        <header className="text-center mb-10">
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Admin Tattoo</h1>
-          <p className="text-zinc-500 font-medium">Faça login para gerenciar seu estúdio</p>
-        </header>
+    <div className="min-h-screen bg-white font-sans text-zinc-900">
+      {/* Navbar com Link para seu Login de Admin */}
+      <nav className="flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
+        <div className="flex items-center gap-1">
+          <span className="text-2xl font-black tracking-tighter uppercase">Tattoo</span>
+          <span className="text-2xl font-black tracking-tighter uppercase text-orange-600">Saas</span>
+        </div>
+        <Link 
+          href="/login" 
+          className="bg-black text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-zinc-800 transition-all shadow-lg"
+        >
+          Acessar Painel
+        </Link>
+      </nav>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="relative">
-            <Mail className="absolute left-4 top-4 text-zinc-500" size={20} />
-            <input 
-              type="email"
-              placeholder="E-mail"
-              required
-              className="w-full bg-zinc-950 border border-zinc-800 p-4 pl-12 rounded-2xl outline-none text-white focus:border-orange-500 transition-all"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+      {/* Seção Principal (Hero) */}
+      <main className="max-w-4xl mx-auto text-center pt-20 pb-32 px-6">
+        <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-8">
+          Sua agenda no <br />
+          <span className="text-orange-600 underline decoration-orange-600 underline-offset-8">automático.</span>
+        </h1>
+        
+        <p className="text-zinc-500 text-lg md:text-xl font-medium max-w-2xl mx-auto mb-12">
+          O sistema de agendamento feito para tatuadores. Link na bio, gestão de flash e aviso no WhatsApp.
+        </p>
 
-          <div className="relative">
-            <Lock className="absolute left-4 top-4 text-zinc-500" size={20} />
-            <input 
-              type="password"
-              placeholder="Senha"
-              required
-              className="w-full bg-zinc-950 border border-zinc-800 p-4 pl-12 rounded-2xl outline-none text-white focus:border-orange-500 transition-all"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <button 
-            disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-900/20"
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          {/* BOTÃO DO CLIENTE: Vai para a página de agendamento do Cadu */}
+          <Link 
+            href="/agendar/cadu-tattoo" 
+            className="w-full md:w-auto bg-orange-600 hover:bg-orange-500 text-white font-black px-10 py-5 rounded-2xl transition-all shadow-xl shadow-orange-200 text-lg flex items-center justify-center gap-2"
           >
-            {loading ? <Loader2 className="animate-spin" /> : "ENTRAR NO PAINEL"}
-          </button>
-        </form>
-      </div>
+            Ver Demo do Cadu <ArrowRight size={20} />
+          </Link>
+
+          {/* BOTÃO DE INTERESSE: Também pode levar ao login ou cadastro */}
+          <Link 
+            href="/login" 
+            className="w-full md:w-auto bg-white border-2 border-zinc-900 text-black font-black px-10 py-5 rounded-2xl hover:bg-zinc-50 transition-all text-lg"
+          >
+            Começar Grátis
+          </Link>
+        </div>
+      </main>
+
+      {/* Seção de Benefícios (Rodapé Preto) */}
+      <section className="bg-black text-white py-24 rounded-t-[60px] shadow-[0_-20px_50px_rgba(0,0,0,0.2)]">
+        <div className="max-w-6xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-16">
+          <div className="text-center space-y-4">
+            <div className="flex justify-center text-orange-500"><Zap size={40} fill="currentColor" /></div>
+            <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Agilidade</h3>
+            <p className="text-zinc-500 text-sm font-medium">O cliente agenda em menos de 30 segundos sem precisar baixar nada.</p>
+          </div>
+
+          <div className="text-center space-y-4">
+            <div className="flex justify-center text-orange-500"><Star size={40} fill="currentColor" /></div>
+            <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Profissionalismo</h3>
+            <p className="text-zinc-500 text-sm font-medium">Apresente seus serviços e preços de forma clara e profissional.</p>
+          </div>
+
+          <div className="text-center space-y-4">
+            <div className="flex justify-center text-orange-500"><Shield size={40} fill="currentColor" /></div>
+            <h3 className="text-xl font-black uppercase italic tracking-tighter italic">Segurança</h3>
+            <p className="text-zinc-500 text-sm font-medium">Painel exclusivo protegido por login para você gerenciar seus ganhos.</p>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
