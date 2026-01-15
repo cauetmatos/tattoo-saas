@@ -1,39 +1,69 @@
 "use client"
 
-import { useState } from 'react'
-import { Clock, CheckCircle2, User, Smartphone, LayoutGrid, Paintbrush, Syringe } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js' // Certifique-se de ter instalado
+import { Clock, CheckCircle2, User, Smartphone } from 'lucide-react'
 
-// Dados completos com Categorias
-const allServices = [
-  { id: 1, category: 'Piercing', name: 'Aplicação de Piercing (+ Joia)', price: 120, duration: '30 min', description: 'Inclui joia básica de titânio e assepsia completa.' },
-  { id: 2, category: 'Tattoo', name: 'Cover-up (Cobertura)', price: 500, duration: '180 min', description: 'Avaliação técnica para cobrir tatuagens antigas.' },
-  { id: 3, category: 'Tattoo', name: 'Criação de Arte Personalizada', price: 150, duration: '60 min', description: 'Reunião para desenvolvimento de desenho exclusivo.' },
-  { id: 4, category: 'Tattoo', name: 'Diária (Full Day)', price: 1800, duration: '480 min', description: 'Sessão exclusiva para grandes projetos.' },
-  { id: 5, category: 'Tattoo', name: 'Fechamento Completo', price: 3000, duration: '600 min', description: 'Projeto de fechamento de braço ou perna.' },
-  { id: 6, category: 'Outros', name: 'Avaliação Presencial', price: 0, duration: '20 min', description: 'Conversa para tirar dúvidas e orçamentos.' },
-]
+// Inicialize o cliente do Supabase (use suas variáveis de ambiente)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+interface Service {
+  id: string
+  name: string
+  price: number
+  duration_minutes: number
+  category: string | null
+}
 
 export default function AgendamentoPage() {
-  const [selectedService, setSelectedService] = useState<number | null>(null)
+  const [services, setServices] = useState<Service[]>([])
+  const [selectedService, setSelectedService] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState('Todos')
+  const [loading, setLoading] = useState(true)
 
-  // Lógica de filtragem
-  const filteredServices = activeCategory === 'Todos' 
-    ? allServices 
-    : allServices.filter(s => s.category === activeCategory)
+  // 1. BUSCAR DADOS DO SUPABASE
+  useEffect(() => {
+    async function fetchServices() {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('name', { ascending: true })
 
-  const categories = ['Todos', 'Tattoo', 'Piercing', 'Outros']
+      if (error) {
+        console.error('Erro ao buscar serviços:', error)
+      } else {
+        setServices(data || [])
+      }
+      setLoading(false)
+    }
+
+    fetchServices()
+  }, [])
+
+  // 2. GERAR CATEGORIAS DINÂMICAS BASEADO NO QUE EXISTE NO BANCO
+  const categories = ['Todos', ...Array.from(new Set(services.map(s => s.category || 'Outros')))]
+
+  // 3. FILTRAR SERVIÇOS
+  const filteredServices = activeCategory === 'Todos'
+    ? services
+    : services.filter(s => (s.category || 'Outros') === activeCategory)
+
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-orange-500">Carregando serviços...</div>
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 p-6">
       <header className="max-w-2xl mx-auto text-center mb-8">
-        <h1 className="text-orange-500 font-bold text-sm uppercase tracking-widest mb-2">Agendamento Online</h1>
+        <h1 className="text-orange-500 font-bold text-sm uppercase tracking-widest mb-2 font-sans">Agendamento Online</h1>
         <h2 className="text-3xl font-extrabold tracking-tight">Escolha o seu serviço</h2>
       </header>
 
       <main className="max-w-2xl mx-auto space-y-6">
         
-        {/* BARRA DE CATEGORIAS */}
+        {/* BARRA DE CATEGORIAS DINÂMICA */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((cat) => (
             <button
@@ -49,19 +79,7 @@ export default function AgendamentoPage() {
           ))}
         </div>
 
-        {/* IDENTIFICAÇÃO */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800/50">
-          <div className="relative">
-            <User className="absolute left-3 top-3 text-zinc-500 size-4" />
-            <input type="text" placeholder="Nome completo" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 pl-9 pr-4 text-sm focus:border-orange-500 outline-none" />
-          </div>
-          <div className="relative">
-            <Smartphone className="absolute left-3 top-3 text-zinc-500 size-4" />
-            <input type="text" placeholder="WhatsApp" className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 pl-9 pr-4 text-sm focus:border-orange-500 outline-none" />
-          </div>
-        </section>
-
-        {/* LISTA DINÂMICA */}
+        {/* LISTA VINDA DO SUPABASE */}
         <section className="space-y-3">
           {filteredServices.map((service) => (
             <div 
@@ -76,48 +94,38 @@ export default function AgendamentoPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-bold">
-                      {service.category}
+                      {service.category || 'Geral'}
                     </span>
                   </div>
                   <h3 className="font-bold text-base">{service.name}</h3>
-                  <p className="text-zinc-500 text-xs mt-1 line-clamp-2">{service.description}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <span className="block text-orange-500 font-bold text-base">
-                    {service.price === 0 ? 'Grátis' : `R$ ${service.price}`}
+                    R$ {service.price}
                   </span>
-                  <div className="flex items-center text-zinc-500 text-[10px] mt-1 justify-end">
-                    <Clock className="size-3 mr-1" />
-                    {service.duration}
+                  <div className="flex items-center text-zinc-500 text-[10px] mt-1 justify-end font-medium">
+                    <Clock className="size-3 mr-1 text-zinc-600" />
+                    {service.duration_minutes} min
                   </div>
                 </div>
               </div>
 
               {selectedService === service.id && (
-                <CheckCircle2 className="absolute -top-2 -right-2 text-orange-500 bg-black rounded-full size-5" />
+                <CheckCircle2 className="absolute -top-2 -right-2 text-orange-500 bg-black rounded-full size-5 shadow-lg shadow-orange-500/20" />
               )}
             </div>
           ))}
-
-          {filteredServices.length === 0 && (
-            <div className="text-center py-10 text-zinc-500 italic">
-              Nenhum serviço encontrado nesta categoria.
-            </div>
-          )}
         </section>
 
-        {/* BOTÃO FIXO/RODAPÉ */}
-        <div className="pt-4">
-          <button 
-            disabled={!selectedService}
-            className={`w-full py-4 rounded-xl font-bold text-base transition-all
-              ${selectedService 
-                ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
-          >
-            {selectedService ? 'Ver horários disponíveis' : 'Selecione um serviço'}
-          </button>
-        </div>
+        <button 
+          disabled={!selectedService}
+          className={`w-full py-4 rounded-xl font-bold text-base transition-all
+            ${selectedService 
+              ? 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/20' 
+              : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
+        >
+          {selectedService ? 'Ver horários disponíveis' : 'Selecione um serviço'}
+        </button>
       </main>
     </div>
   )
