@@ -1,62 +1,61 @@
 "use client"
 
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useParams } from 'next/navigation' // Importação correta para Client Components
+import { useParams, useRouter } from 'next/navigation'
+import { CheckCircle2, MessageSquare } from 'lucide-react'
 
-export default function PaginaSucesso() {
-  const [estudio, setEstudio] = useState<any>(null)
-  const [erro, setErro] = useState(false) // Novo estado para tratar falhas
-  const params = useParams() // Pega o slug da URL de forma segura
+export default function SucessoPage() {
+  const params = useParams()
+  const router = useRouter()
+  
+  // Captura o slug (ex: cadu-tattoo) para saber para onde voltar
+  const studioSlug = params.slug
 
-  useEffect(() => {
-    async function carregarEstudio() {
-      if (!params?.slug) return;
+  const handleVoltarInicio = () => {
+    // Redireciona para a tela inicial do estúdio específico
+    router.push(`/agendar/${studioSlug}`)
+  }
 
-      const { data, error } = await supabase
-        .from('studios')
-        .select('*')
-        .eq('slug', params.slug)
-        .single()
-
-      if (error) {
-        console.error("Erro ao buscar estúdio:", error.message)
-        setErro(true)
-      } else {
-        setEstudio(data)
-      }
-    }
-    carregarEstudio()
-  }, [params?.slug])
-
-  if (erro) return <div className="p-10 text-center">Erro ao carregar dados do estúdio.</div>
-  if (!estudio) return <div className="p-10 text-center">Carregando...</div>
-
-  const mensagem = `Olá! Acabei de realizar um agendamento no ${estudio.name}.`
-  const linkWhats = `https://wa.me/${estudio.whatsapp}?text=${encodeURIComponent(mensagem)}`
+  const handleWhatsApp = () => {
+    // Aqui você pode adicionar a lógica para abrir o WhatsApp do tatuador
+    // Exemplo: window.open(`https://wa.me/5513999999999?text=Agendamento confirmado!`, '_blank')
+    alert("Redirecionando para o WhatsApp...")
+  }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 text-center">
-      <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-orange-500 mb-4">Agendamento Realizado!</h1>
-        <p className="text-zinc-400 mb-8">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <div className="max-w-sm w-full bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 text-center shadow-2xl">
+        
+        <div className="flex justify-center mb-6">
+          <div className="bg-orange-500/10 p-4 rounded-full">
+            <CheckCircle2 className="size-12 text-orange-500" />
+          </div>
+        </div>
+
+        <h1 className="text-2xl font-extrabold mb-2 tracking-tight">
+          Agendamento Realizado!
+        </h1>
+        
+        <p className="text-zinc-400 text-sm mb-8 leading-relaxed">
           Tudo certo! Agora você precisa confirmar seu horário via WhatsApp com o tatuador.
         </p>
-        
-        <a 
-          href={linkWhats}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-xl w-full block transition-all"
-        >
-          CONFIRMAR NO WHATSAPP
-        </a>
 
-        <Link href={`/agendar/${params.slug}`} className="block mt-6 text-zinc-500 hover:text-zinc-300 text-sm">
-          Voltar para o início
-        </Link>
+        <div className="space-y-3">
+          <button 
+            onClick={handleWhatsApp}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+          >
+            <MessageSquare size={18} />
+            CONFIRMAR NO WHATSAPP
+          </button>
+
+          <button 
+            onClick={handleVoltarInicio}
+            className="w-full bg-transparent hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 font-medium py-3 rounded-2xl transition-all text-sm"
+          >
+            Voltar para o início
+          </button>
+        </div>
       </div>
-    </main>
+    </div>
   )
 }
