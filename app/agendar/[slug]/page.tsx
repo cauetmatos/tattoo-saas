@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js' // Certifique-se de ter instalado
-import { Clock, CheckCircle2, User, Smartphone } from 'lucide-react'
+import { useRouter } from 'next/navigation' // Importação para navegação
+import { createClient } from '@supabase/supabase-js'
+import { Clock, CheckCircle2 } from 'lucide-react'
 
-// Inicialize o cliente do Supabase (use suas variáveis de ambiente)
+// Inicialize o cliente do Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -19,6 +20,7 @@ interface Service {
 }
 
 export default function AgendamentoPage() {
+  const router = useRouter() // Inicializa o roteador do Next.js
   const [services, setServices] = useState<Service[]>([])
   const [selectedService, setSelectedService] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState('Todos')
@@ -44,20 +46,36 @@ export default function AgendamentoPage() {
     fetchServices()
   }, [])
 
-  // 2. GERAR CATEGORIAS DINÂMICAS BASEADO NO QUE EXISTE NO BANCO
+  // 2. FUNÇÃO PARA NAVEGAR PARA A PRÓXIMA TELA
+  const handleVerHorarios = () => {
+    if (selectedService) {
+      // Redireciona para a tela de horários passando o ID do serviço escolhido
+      router.push(`/agendar/cadu-tattoo/horarios?serviceId=${selectedService}`)
+    }
+  }
+
+  // 3. GERAR CATEGORIAS DINÂMICAS
   const categories = ['Todos', ...Array.from(new Set(services.map(s => s.category || 'Outros')))]
 
-  // 3. FILTRAR SERVIÇOS
+  // 4. FILTRAR SERVIÇOS
   const filteredServices = activeCategory === 'Todos'
     ? services
     : services.filter(s => (s.category || 'Outros') === activeCategory)
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-orange-500">Carregando serviços...</div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-orange-500">
+        Carregando serviços...
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 p-6">
       <header className="max-w-2xl mx-auto text-center mb-8">
-        <h1 className="text-orange-500 font-bold text-sm uppercase tracking-widest mb-2 font-sans">Agendamento Online</h1>
+        <h1 className="text-orange-500 font-bold text-sm uppercase tracking-widest mb-2 font-sans">
+          Agendamento Online
+        </h1>
         <h2 className="text-3xl font-extrabold tracking-tight">Escolha o seu serviço</h2>
       </header>
 
@@ -79,7 +97,7 @@ export default function AgendamentoPage() {
           ))}
         </div>
 
-        {/* LISTA VINDA DO SUPABASE */}
+        {/* LISTA DE SERVIÇOS */}
         <section className="space-y-3">
           {filteredServices.map((service) => (
             <div 
@@ -117,8 +135,10 @@ export default function AgendamentoPage() {
           ))}
         </section>
 
+        {/* BOTÃO DE AÇÃO ATUALIZADO */}
         <button 
           disabled={!selectedService}
+          onClick={handleVerHorarios} // Evento de clique adicionado
           className={`w-full py-4 rounded-xl font-bold text-base transition-all
             ${selectedService 
               ? 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/20' 
